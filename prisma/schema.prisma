@@ -13,21 +13,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum PaymentMethod {
-  CREDIT
-  DEBIT
-}
-
-enum PayableStatus {
-  PAID
-  WAITING_FUNDS
-}
 
 model Transaction {
   id  String   @id @default(uuid())
   value Float
   description String
-  paymentMethod PaymentMethod
+  paymentMethod String
   cardNumber Int
   cardHolder String
   cardExpiry String
@@ -46,7 +37,7 @@ model Payable {
   client Client @relation(fields: [clientId], references: [id])
   value        Float
   paymentDate DateTime
-  status PayableStatus
+  status String
   fee Int
   
 }
