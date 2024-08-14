@@ -13,9 +13,21 @@ export class TransactionsService {
   ): Promise<Transaction> {
     // TODO: verify if client exists
 
+    createTransactionDto.cardNumber = this.getLastFourDigits(
+      createTransactionDto.cardNumber,
+    );
     return await this.transactionRepository.create(
       uuidv4(),
       createTransactionDto,
     );
+  }
+
+  findAll(): Promise<Transaction[]> {
+    return this.transactionRepository.findAll();
+  }
+
+  private getLastFourDigits(number: number): number {
+    const numberString = number.toString();
+    return Number(numberString.slice(-4));
   }
 }
