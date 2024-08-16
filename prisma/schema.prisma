@@ -44,7 +44,7 @@ model Payable {
 
 model Client {
   id       String    @id @default(uuid())
-  name     String
+  name     String     @unique()
   Payable  Payable[]
   Transaction Transaction[]
 }
