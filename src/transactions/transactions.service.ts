@@ -3,31 +3,43 @@ import { Transaction } from './entities/transaction.entity';
 import { CreateTransactionDTO } from './dto/create-transaction.dto';
 import TransactionRepository from './repositories/transaction.repository';
 import { v4 as uuidv4 } from 'uuid';
+import { PayableService } from 'src/payable/payable.service';
 
 @Injectable()
 export class TransactionsService {
-  constructor(private readonly transactionRepository: TransactionRepository) {}
+  constructor(
+    private readonly transactionRepository: TransactionRepository,
+    private readonly payableService: PayableService,
+  ) {}
 
   async create(
     createTransactionDto: CreateTransactionDTO,
   ): Promise<Transaction> {
     // TODO: verify if client exists
 
-    createTransactionDto.cardNumber = this.getLastFourDigits(
+    createTransactionDto.cardNumber = this.getCardLastFourDigits(
       createTransactionDto.cardNumber,
     );
-    return await this.transactionRepository.create(
+
+    const transaction = await this.transactionRepository.create(
       uuidv4(),
       createTransactionDto,
     );
+
+    await this.payableService.create({
+      transactionId: transaction.id,
+      ...transaction,
+    });
+
+    return transaction;
   }
 
   findAll(): Promise<Transaction[]> {
     return this.transactionRepository.findAll();
   }
 
-  private getLastFourDigits(number: number): number {
-    const numberString = number.toString();
+  private getCardLastFourDigits(cardNumber: number): number {
+    const numberString = cardNumber.toString();
     return Number(numberString.slice(-4));
   }
 }

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { PayableService } from './payable.service';
 import PayableRepository from './repositories/payable.repository';
 import { PrismaPayableRepository } from './repositories/prisma-payable.repository';
+import { PayableController } from './payable.controller';
 
 @Module({
   providers: [
@@ -11,5 +12,6 @@ import { PrismaPayableRepository } from './repositories/prisma-payable.repositor
       useClass: PrismaPayableRepository,
     },
   ],
+  controllers: [PayableController],
 })
 export class PayableModule {}

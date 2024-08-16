@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
 
-import { Payable } from '../entities/payable.entity';
+import { Payable, PayableStatus } from '../entities/payable.entity';
 import PayableRepository from './payable.repository';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreatePayableDTO } from '../dto/create-payable.dto';
 
 @Injectable()
 export class PrismaPayableRepository extends PayableRepository {
@@ -11,21 +10,10 @@ export class PrismaPayableRepository extends PayableRepository {
     super();
   }
 
-  async create(
-    id: string,
-    createPayableDTO: CreatePayableDTO,
-  ): Promise<Payable> {
-    const { transactionId, clientId, value, paymentDate, status, fee } =
-      createPayableDTO;
+  async create(payable: Payable): Promise<Payable> {
     return await this.prisma.payable.create({
       data: {
-        id,
-        transactionId,
-        clientId,
-        value,
-        paymentDate,
-        status,
-        fee,
+        ...payable,
       },
     });
   }
@@ -39,5 +27,33 @@ export class PrismaPayableRepository extends PayableRepository {
 
   async findAll(): Promise<Payable[]> {
     return this.prisma.payable.findMany();
+  }
+
+  async getAvailableBalance(clientId: string): Promise<number> {
+    const dbResult = await this.prisma.payable.aggregate({
+      _sum: {
+        value: true,
+      },
+      where: {
+        clientId,
+        status: PayableStatus.PAID,
+      },
+    });
+    const availableBalance = dbResult._sum.value;
+    return availableBalance;
+  }
+
+  async getPendingBalance(clientId: string): Promise<number> {
+    const dbResult = await this.prisma.payable.aggregate({
+      _sum: {
+        value: true,
+      },
+      where: {
+        clientId,
+        status: PayableStatus.WAITING_FUNDS,
+      },
+    });
+    const availableBalance = dbResult._sum.value;
+    return availableBalance;
   }
 }
