@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PayableService } from '../../payable.service';
 import PayableRepository from '../../repositories/payable.repository';
-import { payableRepositoryMock } from '../mocks/payable-repository.mock';
-import { assignorRepositoryMock } from '../mocks/assignor-repository.mock';
-import AssignorRepository from '../../../assignor/repositories/assignor.repository';
 import { createPayableExamples } from '../examples/create-payable';
 import { NotFoundException } from '@nestjs/common';
-import { payable } from '../examples/payable-examples';
+import { PayableRepositoryMock } from '../mocks/payable-repository.mock';
+import { payable1, payable2 } from '../examples/payable-examples';
+import { PayableStatus } from '../../../payable/entities/payable.entity';
 
 describe('PayableService', () => {
   let service: PayableService;
+  let payableRepository: PayableRepository;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -17,16 +17,13 @@ describe('PayableService', () => {
         PayableService,
         {
           provide: PayableRepository,
-          useValue: payableRepositoryMock,
-        },
-        {
-          provide: AssignorRepository,
-          useValue: assignorRepositoryMock,
+          useValue: PayableRepositoryMock,
         },
       ],
     }).compile();
 
     service = module.get<PayableService>(PayableService);
+    payableRepository = module.get<PayableRepository>(PayableRepository);
   });
 
   it('should be defined', () => {
@@ -34,18 +31,36 @@ describe('PayableService', () => {
   });
 
   describe('create', () => {
-    it('should create a payable and return it', async () => {
-      const payable = await service.create(createPayableExamples.valid);
+    it('should create a payable for Debit payment', async () => {
+      jest.spyOn(payableRepository, 'create').mockResolvedValue(payable2);
+
+      const payable = await service.create(
+        createPayableExamples.validDebitMethod,
+      );
       expect(payable.id).toBeDefined();
-      expect(payable.assignorId).toBe(createPayableExamples.valid.assignorId);
-      expect(payable.value).toBe(createPayableExamples.valid.value);
+      expect(payable.value).toBe(485); // fee 3%
+      expect(payable.paymentDate.toDateString()).toEqual(
+        new Date().toDateString(),
+      );
+      expect(payable.status).toBe(PayableStatus.PAID);
     });
 
-    it('should throw NotFoundException if assignor is not found', async () => {
-      jest.spyOn(assignorRepositoryMock, 'findOne').mockResolvedValue(null);
-      await expect(
-        service.create(createPayableExamples.notFound),
-      ).rejects.toThrow(NotFoundException);
+    it('should create a payable for Credit payment', async () => {
+      jest.spyOn(payableRepository, 'create').mockResolvedValue(payable1);
+      const today = new Date();
+      const expectedPaymentDate = new Date(
+        today.getTime() + 30 * 24 * 60 * 60 * 1000,
+      ); // Adiciona 30 dias em milissegundos
+
+      const payable = await service.create(
+        createPayableExamples.validCreditMethod,
+      );
+      expect(payable.id).toBeDefined();
+      expect(payable.value).toBe(1425); // fee 5%
+      expect(payable.paymentDate.toDateString()).toEqual(
+        expectedPaymentDate.toDateString(),
+      );
+      expect(payable.status).toBe(PayableStatus.WAITING_FUNDS);
     });
   });
 
@@ -56,46 +71,26 @@ describe('PayableService', () => {
     });
   });
 
+  describe('balance', () => {
+    it('should return available and waiting funds balance for a client', async () => {
+      const balance = await service.balance('client1');
+      expect(balance.available).toBe(300);
+      expect(balance.waitingFunds).toBe(600);
+    });
+  });
+
   describe('findOne', () => {
-    it('should return a payable', async () => {
+    it('should return a payable by id', async () => {
       const payable = await service.findOne('payable1');
       expect(payable.id).toBeDefined();
+      expect(payable.value).toBe(1425);
     });
 
     it('should throw NotFoundException if payable is not found', async () => {
-      jest.spyOn(payableRepositoryMock, 'findOne').mockResolvedValue(null);
+      jest.spyOn(payableRepository, 'findOne').mockResolvedValue(null);
       await expect(service.findOne('not-found')).rejects.toThrow(
         NotFoundException,
       );
-    });
-  });
-
-  describe('update', () => {
-    it('should update a payable and return it', async () => {
-      jest
-        .spyOn(payableRepositoryMock, 'findOne')
-        .mockResolvedValue(payable.payable1);
-      const result = await service.update(
-        'payable1',
-        createPayableExamples.update,
-      );
-      expect(result.id).toBeDefined();
-      expect(result.assignorId).toBe(createPayableExamples.update.assignorId);
-      expect(result.value).toBe(createPayableExamples.update.value);
-    });
-
-    it('should throw NotFoundException if payable is not found', async () => {
-      jest.spyOn(payableRepositoryMock, 'findOne').mockResolvedValue(null);
-      await expect(
-        service.update('not-found', createPayableExamples.update),
-      ).rejects.toThrow(NotFoundException);
-    });
-  });
-
-  describe('delete', () => {
-    it('should delete a payable', async () => {
-      const result = await service.remove('payable1');
-      expect(result).toBeUndefined();
     });
   });
 });

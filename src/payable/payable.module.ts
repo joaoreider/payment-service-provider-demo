@@ -13,5 +13,6 @@ import { PayableController } from './payable.controller';
     },
   ],
   controllers: [PayableController],
+  exports: [PayableService],
 })
 export class PayableModule {}

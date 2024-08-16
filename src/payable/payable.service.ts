@@ -2,9 +2,9 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import PayableRepository from './repositories/payable.repository';
 import { Payable, PayableStatus } from './entities/payable.entity';
 import { CreatePayableDTO } from './dto/create-payable.dto';
-import { PaymentMethod } from 'src/transactions/entities/transaction.entity';
+import { PaymentMethod } from '../transactions/entities/transaction.entity';
 import { v4 as uuidv4 } from 'uuid';
-import { THIRTY_DAYS } from 'src/constants';
+import { THIRTY_DAYS } from '../constants';
 import { PayableBalanceResponse } from './dto/payable-balance-response.dto';
 
 @Injectable()

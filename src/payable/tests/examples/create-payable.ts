@@ -1,18 +1,16 @@
+import { PaymentMethod } from '../../../transactions/entities/transaction.entity';
+
 export const createPayableExamples = {
-  valid: {
-    value: 1000,
-    assignorId: 'assignor1',
+  validDebitMethod: {
+    value: 500.0,
+    paymentMethod: PaymentMethod.DEBIT,
+    clientId: 'client_123',
+    transactionId: 'trans_abc123',
   },
-  invalid: {
-    value: 'invalid',
-    assignorId: 'invalid',
-  },
-  notFound: {
-    value: 1000,
-    assignorId: 'not-found',
-  },
-  update: {
-    value: 1000,
-    assignorId: 'assignor1',
+  validCreditMethod: {
+    value: 1500.0,
+    paymentMethod: PaymentMethod.CREDIT,
+    clientId: 'client_123',
+    transactionId: 'trans_abc123',
   },
 };
