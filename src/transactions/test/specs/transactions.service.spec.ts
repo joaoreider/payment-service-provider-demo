@@ -4,18 +4,27 @@ import { TransactionsService } from '../../transactions.service';
 import { TransactionRepositoryMock } from '../mocks/transaction-repository.mock';
 import { createTransactionExamples } from '../examples/create-transaction';
 
+import { PayableService } from '../../../payable/payable.service';
+
 describe('TransactionsService', () => {
   let service: TransactionsService;
-
+  let payableService: PayableService;
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TransactionsService,
         { provide: TransactionRepository, useValue: TransactionRepositoryMock },
+        {
+          provide: PayableService,
+          useValue: {
+            create: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
     service = module.get<TransactionsService>(TransactionsService);
+    payableService = module.get<PayableService>(PayableService);
   });
 
   it('should be defined', () => {
@@ -44,6 +53,11 @@ describe('TransactionsService', () => {
         createTransactionExamples.valid.cardExpiry,
       );
       expect(transaction.cvv).toBe(createTransactionExamples.valid.cvv);
+
+      expect(payableService.create).toHaveBeenCalledWith({
+        transactionId: transaction.id,
+        ...transaction,
+      });
     });
 
     it.skip('should throw NotFoundException if client is not found', async () => {});

@@ -3,7 +3,7 @@ import { Transaction } from './entities/transaction.entity';
 import { CreateTransactionDTO } from './dto/create-transaction.dto';
 import TransactionRepository from './repositories/transaction.repository';
 import { v4 as uuidv4 } from 'uuid';
-import { PayableService } from 'src/payable/payable.service';
+import { PayableService } from '../payable/payable.service';
 
 @Injectable()
 export class TransactionsService {
