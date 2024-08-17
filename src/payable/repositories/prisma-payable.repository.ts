@@ -39,7 +39,7 @@ export class PrismaPayableRepository extends PayableRepository {
         status: PayableStatus.PAID,
       },
     });
-    const availableBalance = dbResult._sum.value;
+    const availableBalance = dbResult._sum.value ?? 0;
     return availableBalance;
   }
 
@@ -53,7 +53,7 @@ export class PrismaPayableRepository extends PayableRepository {
         status: PayableStatus.WAITING_FUNDS,
       },
     });
-    const availableBalance = dbResult._sum.value;
+    const availableBalance = dbResult._sum.value ?? 0;
     return availableBalance;
   }
 }

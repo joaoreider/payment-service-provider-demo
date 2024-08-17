@@ -36,7 +36,9 @@ export class TransactionsService {
 
     await this.payableService.create({
       transactionId: transaction.id,
-      ...transaction,
+      value: transaction.value,
+      clientId: transaction.clientId,
+      paymentMethod: transaction.paymentMethod,
     });
 
     return transaction;

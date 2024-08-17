@@ -6,7 +6,9 @@ import TransactionRepository from './repositories/transaction.repository';
 import PrismaTransactionRepository from './repositories/prisma-transaction-repository';
 import PayableRepository from '../payable/repositories/payable.repository';
 import { PrismaPayableRepository } from '../payable/repositories/prisma-payable.repository';
-import { ClientsService } from 'src/clients/clients.service';
+import { ClientsService } from '../clients/clients.service';
+import ClientRepository from '../clients/repositories/client.repository';
+import PrismaClientRepository from '../clients/repositories/prisma-client.repository';
 
 @Module({
   controllers: [TransactionsController],
@@ -21,6 +23,10 @@ import { ClientsService } from 'src/clients/clients.service';
     {
       provide: PayableRepository,
       useClass: PrismaPayableRepository,
+    },
+    {
+      provide: ClientRepository,
+      useClass: PrismaClientRepository,
     },
   ],
 })

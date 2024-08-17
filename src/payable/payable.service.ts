@@ -6,10 +6,14 @@ import { PaymentMethod } from '../transactions/entities/transaction.entity';
 import { v4 as uuidv4 } from 'uuid';
 import { THIRTY_DAYS } from '../constants';
 import { PayableBalanceResponse } from './dto/payable-balance-response.dto';
+import { ClientsService } from '../clients/clients.service';
 
 @Injectable()
 export class PayableService {
-  constructor(private readonly payableRepository: PayableRepository) {}
+  constructor(
+    private readonly payableRepository: PayableRepository,
+    private readonly clientService: ClientsService,
+  ) {}
 
   async create(createPayableDTO: CreatePayableDTO): Promise<Payable> {
     switch (createPayableDTO.paymentMethod) {
@@ -29,11 +33,12 @@ export class PayableService {
     const paymentDate = new Date(new Date().getTime() + THIRTY_DAYS); // d+30
     const payable: Payable = {
       id: uuidv4(),
-      ...createPayableDTO,
-      fee,
       value: amount,
-      paymentDate,
       status: PayableStatus.WAITING_FUNDS,
+      paymentDate,
+      fee,
+      clientId: createPayableDTO.clientId,
+      transactionId: createPayableDTO.transactionId,
     };
     return this.payableRepository.create(payable);
   }
@@ -57,6 +62,12 @@ export class PayableService {
   }
 
   async balance(clientId: string): Promise<PayableBalanceResponse> {
+    const client = await this.clientService.findById(clientId);
+
+    if (!client) {
+      throw new NotFoundException('Client not found');
+    }
+
     const availablePromise =
       this.payableRepository.getAvailableBalance(clientId);
     const waitingFundsPromise =
