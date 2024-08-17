@@ -39,7 +39,6 @@ model Payable {
   paymentDate DateTime
   status String
   fee Int
-  
 }
 
 model Client {

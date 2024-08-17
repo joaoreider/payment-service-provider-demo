@@ -1,0 +1,26 @@
+version: '3'
+
+services:
+
+  backend:
+    container_name: backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    ports:
+      - ${BACKEND_PORT}:${BACKEND_PORT}
+    depends_on:
+      - database
+    volumes:
+      - ./src:/app/src
+
+  database:
+    image: postgres:latest 
+    environment:
+      POSTGRES_DB: ${DB_NAME} 
+      POSTGRES_USER: ${DB_USER}   
+      POSTGRES_PASSWORD: ${DB_PASSWORD}   
+    ports:
+      - "5432:5432"  
