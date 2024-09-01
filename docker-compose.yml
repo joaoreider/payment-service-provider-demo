@@ -13,9 +13,7 @@ services:
       - ${BACKEND_PORT}:${BACKEND_PORT}
     depends_on:
       - database
-    volumes:
-      - ./src:/app/src
-
+      
   database:
     image: postgres:latest 
     environment:
