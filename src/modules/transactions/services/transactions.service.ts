@@ -49,6 +49,10 @@ export class TransactionsService {
     return { available, waitingFunds };
   }
 
+  async listClientTransactions(clientId: string): Promise<Transaction[]> {
+    return this.transactionRepository.findAllByClient(clientId);
+  }
+
   private async createCreditTransaction(
     createTransactionDto: CreateTransactionDTO,
   ): Promise<Transaction> {

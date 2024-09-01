@@ -59,4 +59,12 @@ export default class PrismaTransactionRepository extends TransactionRepository {
     const availableBalance = dbResult._sum.value ?? 0;
     return availableBalance;
   }
+
+  async findAllByClient(clientId: string): Promise<Transaction[]> {
+    return this.prisma.transaction.findMany({
+      where: {
+        clientId,
+      },
+    });
+  }
 }

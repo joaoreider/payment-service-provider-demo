@@ -6,6 +6,7 @@ export default abstract class TransactionRepository {
     transaction: Transaction,
     payable: Payable,
   ): Promise<Transaction>;
+  abstract findAllByClient(clientId: string): Promise<Transaction[]>;
   abstract getAvailableBalance(clientId: string): Promise<number>;
   abstract getPendingBalance(clientId: string): Promise<number>;
 }
