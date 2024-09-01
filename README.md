@@ -11,13 +11,21 @@
 git clone https://github.com/joaoreider/payment-service-provider-demo.git
 ```
 
-2 - Rename .env.example to .env
+2 - Navigate to project directory
+
+```bash
+cd payment-service-provider-demo
+
+```
+
+
+3 - Rename .env.example to .env
 
 ```bash
 mv .env.example .env
 ```
 
-2 - Run:
+4 - Run:
 
 ```bash
 docker-compose up --build
