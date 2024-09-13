@@ -11,6 +11,7 @@ export class ClientsController {
   async create(
     @Body() createClientDTO: CreateClientDTO,
   ): Promise<ClientResponse> {
-    return await this.clientsService.create(createClientDTO);
+    const res = await this.clientsService.create(createClientDTO);
+    return new ClientResponse(res);
   }
 }
