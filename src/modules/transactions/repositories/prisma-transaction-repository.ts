@@ -1,30 +1,42 @@
 import { Injectable } from '@nestjs/common';
-import { Transaction } from '@prisma/client';
 
 import { PrismaService } from 'src/modules/prisma/prisma.service';
-import TransactionRepository from './transaction.repository';
-import { Payable, PayableStatus } from '../entities/payable.entity';
+import TransactionRepository, {
+  AvailableBalanceResponse,
+  CreatedTransaction,
+  PendingBalanceResponse,
+  RequestCreatePayable,
+  RequestCreateTransaction,
+  TransactionList,
+} from './transaction.repository';
+import { PayableStatus } from '../entities/payable.entity';
+import { UuidGeneratorService } from 'src/libs/commons/services/uuid-generator.service';
 
 @Injectable()
 export default class PrismaTransactionRepository extends TransactionRepository {
-  constructor(private prisma: PrismaService) {
+  constructor(
+    private prisma: PrismaService,
+    private readonly uuidGeneratorService: UuidGeneratorService,
+  ) {
     super();
   }
 
   async create(
-    transaction: Transaction,
-    payable: Payable,
-  ): Promise<Transaction> {
+    requestCreateTransaction: RequestCreateTransaction,
+    requestCreatePayable: RequestCreatePayable,
+  ): Promise<CreatedTransaction> {
     return this.prisma.$transaction(async (prisma) => {
       const createdTransaction = await prisma.transaction.create({
         data: {
-          ...transaction,
+          id: this.uuidGeneratorService.generate(),
+          ...requestCreateTransaction,
         },
       });
 
       await prisma.payable.create({
         data: {
-          ...payable,
+          ...requestCreatePayable,
+          transactionId: createdTransaction.id,
         },
       });
 
@@ -32,7 +44,9 @@ export default class PrismaTransactionRepository extends TransactionRepository {
     });
   }
 
-  async getAvailableBalance(clientId: string): Promise<number> {
+  async getAvailableBalance(
+    clientId: string,
+  ): Promise<AvailableBalanceResponse> {
     const dbResult = await this.prisma.payable.aggregate({
       _sum: {
         value: true,
@@ -43,10 +57,10 @@ export default class PrismaTransactionRepository extends TransactionRepository {
       },
     });
     const availableBalance = dbResult._sum.value ?? 0;
-    return availableBalance;
+    return { available: availableBalance };
   }
 
-  async getPendingBalance(clientId: string): Promise<number> {
+  async getPendingBalance(clientId: string): Promise<PendingBalanceResponse> {
     const dbResult = await this.prisma.payable.aggregate({
       _sum: {
         value: true,
@@ -56,15 +70,16 @@ export default class PrismaTransactionRepository extends TransactionRepository {
         status: PayableStatus.WAITING_FUNDS,
       },
     });
-    const availableBalance = dbResult._sum.value ?? 0;
-    return availableBalance;
+    const pendingBalance = dbResult._sum.value ?? 0;
+    return { pending: pendingBalance };
   }
 
-  async findAllByClient(clientId: string): Promise<Transaction[]> {
-    return this.prisma.transaction.findMany({
+  async findAllByClient(clientId: string): Promise<TransactionList> {
+    const list = await this.prisma.transaction.findMany({
       where: {
         clientId,
       },
     });
+    return { transactions: list };
   }
 }

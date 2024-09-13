@@ -7,6 +7,8 @@ import { UuidGeneratorService } from 'src/libs/commons/services/uuid-generator.s
 import { TransactionsService } from './services/transactions.service';
 import ClientRepository from '../clients/repositories/client.repository';
 import PrismaClientRepository from '../clients/repositories/prisma-client.repository';
+import { PayableService } from './services/payable.service';
+import { EncryptService } from 'src/libs/commons/services/encryption.service';
 
 @Module({
   controllers: [TransactionsController],
@@ -14,6 +16,8 @@ import PrismaClientRepository from '../clients/repositories/prisma-client.reposi
     TransactionsService,
     ClientsService,
     UuidGeneratorService,
+    EncryptService,
+    PayableService,
     {
       provide: TransactionRepository,
       useClass: PrismaTransactionRepository,

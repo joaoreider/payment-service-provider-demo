@@ -1,19 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { ClientsService } from 'src/modules/clients/clients.service';
-import { PaymentMethod, Transaction } from '../entities/transaction.entity';
-import { Payable, PayableStatus } from '../entities/payable.entity';
-import { UuidGeneratorService } from 'src/libs/commons/services/uuid-generator.service';
+import { Transaction } from '../entities/transaction.entity';
 import TransactionRepository from '../repositories/transaction.repository';
 import { CreateTransactionDTO } from '../dto/create-transaction.dto';
-import { BalanceResponse } from '../dto/balance-response.dto';
-import { THIRTY_DAYS } from 'src/libs/commons/constants/app.constants';
+import { Balance } from '../dto/balance.dto';
+import { PayableService } from './payable.service';
+import { EncryptService } from 'src/libs/commons/services/encryption.service';
 
 @Injectable()
 export class TransactionsService {
   constructor(
     private readonly transactionRepository: TransactionRepository,
-    private readonly uuidGeneratorService: UuidGeneratorService,
     private readonly clientService: ClientsService,
+    private readonly payableService: PayableService,
+    private readonly encriptService: EncryptService,
   ) {}
 
   async create(
@@ -21,19 +21,21 @@ export class TransactionsService {
   ): Promise<Transaction> {
     await this.clientService.validateClient(createTransactionDto.clientId);
 
-    createTransactionDto.cardNumber = this.getCardLastFourDigits(
-      createTransactionDto.cardNumber,
-    );
+    const transaction: Omit<Transaction, 'id'> = {
+      ...createTransactionDto,
+    };
 
-    switch (createTransactionDto.paymentMethod) {
-      case PaymentMethod.CREDIT:
-        return this.createCreditTransaction(createTransactionDto);
-      case PaymentMethod.DEBIT:
-        return this.createDebitTransaction(createTransactionDto);
-    }
+    const payable = this.payableService.build(createTransactionDto);
+    const dbTransaction = {
+      ...createTransactionDto,
+      cardNumber: await this.getEncriptedCardNumberLastFourDigits(
+        transaction.cardNumber,
+      ),
+    };
+    return await this.transactionRepository.create(dbTransaction, payable);
   }
 
-  async balance(clientId: string): Promise<BalanceResponse> {
+  async balance(clientId: string): Promise<Balance> {
     await this.clientService.validateClient(clientId);
 
     const availablePromise =
@@ -41,72 +43,29 @@ export class TransactionsService {
     const waitingFundsPromise =
       this.transactionRepository.getPendingBalance(clientId);
 
-    const [available, waitingFunds] = await Promise.all([
+    const [availableBalance, waitingFundsBalance] = await Promise.all([
       availablePromise,
       waitingFundsPromise,
     ]);
 
-    return { available, waitingFunds };
+    return {
+      available: availableBalance.available,
+      waitingFunds: waitingFundsBalance.pending,
+    };
   }
 
   async listClientTransactions(clientId: string): Promise<Transaction[]> {
-    return this.transactionRepository.findAllByClient(clientId);
+    return (await this.transactionRepository.findAllByClient(clientId))
+      .transactions;
   }
 
-  private async createCreditTransaction(
-    createTransactionDto: CreateTransactionDTO,
-  ): Promise<Transaction> {
-    const fee = 5; // 5% Tax
-    const discount = fee * (createTransactionDto.value / 100);
-    const amount = createTransactionDto.value - discount;
-    const paymentDate = new Date(new Date().getTime() + THIRTY_DAYS); // d+30 TODO: Turn into a more readable code
+  private async getEncriptedCardNumberLastFourDigits(
+    cardNumber: string,
+  ): Promise<string> {
+    const lastFourDigits = cardNumber.slice(-4);
+    const encryptedLastFourDigits =
+      await this.encriptService.encrypt(lastFourDigits);
 
-    const transaction: Transaction = {
-      id: this.uuidGeneratorService.generate(),
-      ...createTransactionDto,
-    };
-
-    const payable: Payable = {
-      id: this.uuidGeneratorService.generate(),
-      value: amount,
-      status: PayableStatus.WAITING_FUNDS,
-      paymentDate,
-      fee,
-      clientId: transaction.clientId,
-      transactionId: transaction.id,
-    };
-
-    return await this.transactionRepository.create(transaction, payable);
-  }
-
-  private async createDebitTransaction(
-    createTransactionDto: CreateTransactionDTO,
-  ): Promise<Transaction> {
-    const fee = 3; // 3% Tax
-    const discount = fee * (createTransactionDto.value / 100);
-    const amount = createTransactionDto.value - discount;
-    const paymentDate = new Date(); // d+0
-
-    const transaction: Transaction = {
-      id: this.uuidGeneratorService.generate(),
-      ...createTransactionDto,
-    };
-
-    const payable: Payable = {
-      id: this.uuidGeneratorService.generate(),
-      value: amount,
-      status: PayableStatus.PAID,
-      paymentDate,
-      fee,
-      clientId: transaction.clientId,
-      transactionId: transaction.id,
-    };
-
-    return await this.transactionRepository.create(transaction, payable);
-  }
-
-  private getCardLastFourDigits(cardNumber: number): number {
-    const numberString = cardNumber.toString();
-    return Number(numberString.slice(-4));
+    return encryptedLastFourDigits;
   }
 }

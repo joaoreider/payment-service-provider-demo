@@ -8,7 +8,7 @@ export class Transaction {
   value: number;
   description: string;
   paymentMethod: string;
-  cardNumber: number;
+  cardNumber: string;
   cardHolder: string;
   cardExpiry: string;
   cvv: number;
