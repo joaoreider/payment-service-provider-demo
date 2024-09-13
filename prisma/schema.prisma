@@ -13,37 +13,35 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model Transaction {
-  id  String   @id @default(uuid())
-  value Float
-  description String
+  id            String   @id @default(uuid())
+  value         Float
+  description   String
   paymentMethod String
-  cardNumber Int
-  cardHolder String
-  cardExpiry String
-  cvv Int
-  clientId String
-  client Client @relation(fields: [clientId], references: [id])
-  Payable Payable?
+  cardNumber    String
+  cardHolder    String
+  cardExpiry    String
+  cvv           Int
+  clientId      String
+  client        Client   @relation(fields: [clientId], references: [id])
+  Payable       Payable?
 }
 
-
 model Payable {
-  id           String   @id @default(uuid())
-  transactionId String @unique()
+  id            String      @id @default(uuid())
+  transactionId String      @unique()
   transaction   Transaction @relation(fields: [transactionId], references: [id])
-  clientId String
-  client Client @relation(fields: [clientId], references: [id])
-  value        Float
-  paymentDate DateTime
-  status String
-  fee Int
+  clientId      String
+  client        Client      @relation(fields: [clientId], references: [id])
+  value         Float
+  paymentDate   DateTime
+  status        String
+  fee           Int
 }
 
 model Client {
-  id       String    @id @default(uuid())
-  name     String     @unique()
-  Payable  Payable[]
+  id          String        @id @default(uuid())
+  name        String        @unique()
+  Payable     Payable[]
   Transaction Transaction[]
 }
