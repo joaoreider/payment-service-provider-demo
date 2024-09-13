@@ -1,6 +1,14 @@
-version: '3'
-
 services:
+  database:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - '5432:5432'
+    networks:
+      - default
 
   backend:
     container_name: backend
@@ -13,12 +21,8 @@ services:
       - ${BACKEND_PORT}:${BACKEND_PORT}
     depends_on:
       - database
-      
-  database:
-    image: postgres:latest 
-    environment:
-      POSTGRES_DB: ${DB_NAME} 
-      POSTGRES_USER: ${DB_USER}   
-      POSTGRES_PASSWORD: ${DB_PASSWORD}   
-    ports:
-      - "5432:5432"  
+    networks:
+      - default
+
+networks:
+  default:
