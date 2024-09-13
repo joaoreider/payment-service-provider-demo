@@ -1,3 +1,15 @@
-import { Transaction } from '../entities/transaction.entity';
+export class TransactionResponse {
+  id: string;
+  value: number;
+  description: string;
+  paymentMethod: string;
+  cardNumber: string;
+  cardHolder: string;
+  cardExpiry: string;
+  cvv: number;
+  clientId: string;
 
-export class TransactionResponse extends Transaction {}
+  constructor(partial: Partial<TransactionResponse>) {
+    Object.assign(this, partial);
+  }
+}

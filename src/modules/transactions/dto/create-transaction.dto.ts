@@ -1,4 +1,12 @@
-import { IsEnum, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  Matches,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 import { PaymentMethod } from '../entities/transaction.entity';
 
 export class CreateTransactionDTO {
@@ -11,8 +19,11 @@ export class CreateTransactionDTO {
   @IsEnum(PaymentMethod)
   paymentMethod: string;
   @IsNotEmpty()
-  @IsNumber()
-  cardNumber: number;
+  @IsString()
+  @MinLength(4)
+  @MaxLength(16)
+  @Matches(/^\d+$/, { message: 'Card number must contain only numbers' })
+  cardNumber: string;
   @IsNotEmpty()
   @IsString()
   cardHolder: string;

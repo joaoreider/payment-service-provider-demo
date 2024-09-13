@@ -1,3 +1,8 @@
-import { Client } from '../entities/client.entity';
+export class ClientResponse {
+  id: string;
+  name: string;
 
-export class ClientResponse extends Client {}
+  constructor(partial: Partial<ClientResponse>) {
+    Object.assign(this, partial);
+  }
+}

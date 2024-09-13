@@ -9,10 +9,6 @@ export class CreatePayableDTO {
   @IsNotEmpty({ message: 'Client ID is required' })
   clientId: string;
 
-  @IsUUID('4', { message: 'Tranasction ID must be a valid UUID' })
-  @IsNotEmpty({ message: 'Tranasction ID is required' })
-  transactionId: string;
-
   @IsString()
   @IsNotEmpty()
   paymentMethod: string;
