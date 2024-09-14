@@ -14,12 +14,8 @@ export class RedisDistributedCacheService implements IDistributedCacheService {
     );
   }
 
-  async set(key: string, value: string, ttl?: number): Promise<void> {
-    if (ttl) {
-      await this.redis.set(key, value, 'EX', ttl);
-    } else {
-      await this.redis.set(key, value);
-    }
+  async set(key: string, value: string, ttl: number): Promise<void> {
+    await this.redis.set(key, value, 'EX', ttl);
   }
 
   async get(key: string): Promise<string> {
