@@ -11,14 +11,15 @@ services:
     networks:
       - default
 
-  redis:
-    container_name: redis
-    image: redis:6-alpine
-    ports:
-      - 6379:6379
-    networks:
-      - default
-    restart: unless-stopped
+  # Uncomment if not using cache
+  # redis:
+  #   container_name: redis
+  #   image: redis:6-alpine
+  #   ports:
+  #     - 6379:6379
+  #   networks:
+  #     - default
+  #   restart: unless-stopped
 
   backend:
     container_name: backend

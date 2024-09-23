@@ -45,3 +45,9 @@ model Client {
   Payable     Payable[]
   Transaction Transaction[]
 }
+
+model IdempotencyKey {
+  id        String   @id @default(uuid())
+  key       String   @unique()
+  createdAt DateTime @default(now())
+}

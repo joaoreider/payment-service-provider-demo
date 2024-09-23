@@ -1,22 +1,23 @@
-import { Inject, Injectable } from '@nestjs/common';
-import {
-  iDistributedCacheService,
-  IDistributedCacheService,
-} from './distributed-cache.service';
-import { TEN_MINUTES } from '../constants/app.constants';
+import { Injectable } from '@nestjs/common';
+
+import IdempotencyKeyRepository from '../repositories/idempotency.repository';
 
 @Injectable()
 export class IdempotencyService {
   constructor(
-    @Inject(iDistributedCacheService)
-    private readonly distributedCache: IDistributedCacheService,
+    private readonly idempotencyRepository: IdempotencyKeyRepository,
   ) {}
 
   async getKey(key: string): Promise<string> {
-    return await this.distributedCache.get(key);
+    const idempotencyKeyResponse =
+      await this.idempotencyRepository.getIdempotencyKey(key);
+
+    if (idempotencyKeyResponse) {
+      return idempotencyKeyResponse.key;
+    }
   }
 
   async saveKey(key: string): Promise<void> {
-    this.distributedCache.set(key, key, TEN_MINUTES);
+    this.idempotencyRepository.create({ key });
   }
 }

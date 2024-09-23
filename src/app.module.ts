@@ -5,9 +5,10 @@ import { PrismaService } from './modules/prisma/prisma.service';
 import { ClientsModule } from './modules/clients/clients.module';
 import { ConfigModule } from '@nestjs/config';
 import { IdempotencyMiddleware } from './libs/commons/middlewares/idempotency.middleware';
-import { RedisDistributedCacheService } from './libs/commons/services/redis-distributed-cache.service';
-import { iDistributedCacheService } from './libs/commons/services/distributed-cache.service';
 import { IdempotencyService } from './libs/commons/services/idempotency.service';
+import IdempotencyKeyRepository from './libs/commons/repositories/idempotency.repository';
+import PrismaIdempotencyKeyRepository from './libs/commons/repositories/prisma-idempotency-repository';
+import { UuidGeneratorService } from './libs/commons/services/uuid-generator.service';
 
 @Module({
   imports: [
@@ -18,10 +19,11 @@ import { IdempotencyService } from './libs/commons/services/idempotency.service'
   ],
   providers: [
     PrismaService,
+    UuidGeneratorService,
     IdempotencyService,
     {
-      provide: iDistributedCacheService,
-      useClass: RedisDistributedCacheService,
+      provide: IdempotencyKeyRepository,
+      useClass: PrismaIdempotencyKeyRepository,
     },
   ],
 })
