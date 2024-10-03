@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { ClientsService } from 'src/modules/clients/clients.service';
+import { ClientsService } from '../../clients/clients.service';
 import { Transaction } from '../entities/transaction.entity';
 import TransactionRepository from '../repositories/transaction.repository';
 import { CreateTransactionDTO } from '../dto/create-transaction.dto';
 import { Balance } from '../dto/balance.dto';
 import { PayableService } from './payable.service';
-import { EncryptService } from 'src/libs/commons/services/encryption.service';
+import { EncryptService } from '../../../libs/commons/services/encryption.service';
 
 @Injectable()
 export class TransactionsService {
@@ -65,7 +65,6 @@ export class TransactionsService {
     const lastFourDigits = cardNumber.slice(-4);
     const encryptedLastFourDigits =
       await this.encriptService.encrypt(lastFourDigits);
-
     return encryptedLastFourDigits;
   }
 }

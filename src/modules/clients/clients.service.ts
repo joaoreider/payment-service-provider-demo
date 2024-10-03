@@ -6,7 +6,7 @@ import {
 import { CreateClientDTO } from './dto/create-client.dto';
 import { Client } from './entities/client.entity';
 import ClientRepository from './repositories/client.repository';
-import { UuidGeneratorService } from 'src/libs/commons/services/uuid-generator.service';
+import { UuidGeneratorService } from '../../libs/commons/services/uuid-generator.service';
 
 @Injectable()
 export class ClientsService {

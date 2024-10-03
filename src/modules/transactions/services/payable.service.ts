@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Payable, PayableStatus } from '../entities/payable.entity';
-import { THIRTY_DAYS } from 'src/libs/commons/constants/app.constants';
+import { THIRTY_DAYS } from '../../../libs/commons/constants/app.constants';
 import { CreatePayableDTO } from '../dto/create-payable.dto';
 import { PaymentMethod } from '../entities/transaction.entity';
 

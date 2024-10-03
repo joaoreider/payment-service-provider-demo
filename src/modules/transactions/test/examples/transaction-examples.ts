@@ -1,3 +1,4 @@
+import { CreateTransactionDTO } from '../../dto/create-transaction.dto';
 import { PaymentMethod, Transaction } from '../../entities/transaction.entity';
 
 export const exampleTransaction1: Transaction = {
@@ -22,4 +23,17 @@ export const exampleTransaction2: Transaction = {
   cardExpiry: '10/24',
   cvv: 456,
   clientId: 'client-67890',
+};
+
+export const createTransactionExamples = {
+  valid: {
+    value: 250.0,
+    description: 'Purchase at Electronics Store',
+    paymentMethod: PaymentMethod.CREDIT,
+    cardNumber: '1234567812345678',
+    cardHolder: 'John Doe',
+    cardExpiry: '12/25',
+    cvv: 123,
+    clientId: 'client-12345',
+  } as CreateTransactionDTO,
 };
