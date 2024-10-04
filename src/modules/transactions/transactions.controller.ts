@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, Post } from '@nestjs/common';
 import { CreateTransactionDTO } from './dto/create-transaction.dto';
 import { TransactionsService } from './services/transactions.service';
 import { TransactionResponse } from './dto/transaction-response.dto';
@@ -9,6 +9,7 @@ export class TransactionsController {
   constructor(private readonly transactionsService: TransactionsService) {}
 
   @Post()
+  @HttpCode(201)
   async create(
     @Body() createTransactionDTO: CreateTransactionDTO,
   ): Promise<TransactionResponse> {

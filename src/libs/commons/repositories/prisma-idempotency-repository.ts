@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
-import { PrismaService } from 'src/modules/prisma/prisma.service';
-import { UuidGeneratorService } from 'src/libs/commons/services/uuid-generator.service';
+import { PrismaService } from '../../../modules/prisma/prisma.service';
+import { UuidGeneratorService } from '../../../libs/commons/services/uuid-generator.service';
 import IdempotencyKeyRepository, {
   RequestCreateIdempotencyKey,
 } from './idempotency.repository';

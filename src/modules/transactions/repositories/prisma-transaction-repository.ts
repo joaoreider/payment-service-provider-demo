@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { PrismaService } from 'src/modules/prisma/prisma.service';
+import { PrismaService } from '../../../modules/prisma/prisma.service';
 import TransactionRepository, {
   AvailableBalanceResponse,
   CreatedTransaction,
@@ -10,7 +10,7 @@ import TransactionRepository, {
   TransactionList,
 } from './transaction.repository';
 import { PayableStatus } from '../entities/payable.entity';
-import { UuidGeneratorService } from 'src/libs/commons/services/uuid-generator.service';
+import { UuidGeneratorService } from '../../../libs/commons/services/uuid-generator.service';
 
 @Injectable()
 export default class PrismaTransactionRepository extends TransactionRepository {
