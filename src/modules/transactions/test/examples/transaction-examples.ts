@@ -34,6 +34,6 @@ export const createTransactionExamples = {
     cardHolder: 'John Doe',
     cardExpiry: '12/25',
     cvv: 123,
-    clientId: 'client-12345',
+    clientId: '048ab22e-6a84-40c2-bd41-f355c4748754',
   } as CreateTransactionDTO,
 };
