@@ -31,11 +31,21 @@ mv .env.example .env
 docker-compose up --build
 ```
 
-## URLS
-- `http://localhost:3000`
+## Documentation
+- Access `http://localhost:3000/documentation`
+
+## How to run tests?
+
+1 - Unit tests
+
+```bash
+npm run test
+```
+
+2 - End to end tests
+```bash
+npm run test:e2e
+```
 
 
-## TODO: 
-- How to run tests
-- API Routes
 
