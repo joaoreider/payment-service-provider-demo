@@ -1,45 +1,62 @@
 name: Build and Deploy BackendApp to ECS
-
 on:
   push:
     # paths:
     #   - 'src/**'
     branches:
       - production
-
 env:
   # Setting an environment variable with the value of a configuration variable
   ECR_IMAGE: ${{ vars.ECR_IMAGE }}
   AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
-  ECS_CLUSTER: ${{ vars.ECS_CLUSTER }}
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
-
+  build-and-deploy:
+    runs-on: [ubuntu-latest]
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+      - name: Checkout source
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v3
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ vars.AWS_DEFAULT_REGION }}
-
       - name: Login to Amazon ECR
-        run: |
-          aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          mask-password: 'true'
 
-      - name: Build and push Docker image
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: latest
+          REPOSITORY: nestjs-api
         run: |
-          docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ECR_IMAGE:latest
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ECR_IMAGE:latest
+          # Build a docker container and
+          # push it to ECR so that it can
+          # be deployed to ECS.
+          docker build -t $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG
+          echo "image=$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
       - name: Deploy to ECS
         uses: imehedi/actions-awscli-v2@latest
         with:
-          args: ecs update-service --cluster $ECS_CLUSTER --service nestapi-service --force-new-deployment
+          args: ecs update-service --cluster side-projects-cluster --service dev-service --force-new-deployment
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
