@@ -1,21 +1,19 @@
-FROM node:20-alpine AS builder
+FROM node:20-alpine
 
 WORKDIR /app
 
 COPY package*.json ./
-COPY prisma ./prisma/
 
-# Install app dependencies
-RUN npm install
+RUN npm cache clean --force && npm install
 
 COPY . .
 
+EXPOSE 3000
+
+# prisma generate is used to generate the prisma client
+RUN npx prisma generate
+RUN npx prisma migrate deploy
+
 RUN npm run build
 
-FROM node:20
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/dist ./dist
-
-EXPOSE 3000
-CMD [ "npm", "run", "start:prod" ]
+CMD [ "npm", "run", "start:prod"]
