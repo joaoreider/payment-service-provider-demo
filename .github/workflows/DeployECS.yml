@@ -9,7 +9,7 @@ env:
   # Setting an environment variable with the value of a configuration variable
   ECR_IMAGE: ${{ vars.ECR_IMAGE }}
   AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
-#   ECS_CLUSTER: ${{ vars.ECS_CLUSTER }}
+  ECS_CLUSTER: ${{ vars.ECS_CLUSTER }}
 jobs:
   build-and-deploy:
     runs-on: [ubuntu-latest]
@@ -42,17 +42,11 @@ jobs:
           docker push $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG
           echo "image=$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      - name: Fill in the new image ID in the Amazon ECS task definition
-        id: task-def
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
+      - name: Deploy to ECS
+        uses: imehedi/actions-awscli-v2@latest
         with:
-          task-definition: nestjs-basic-td
-          container-name: nestjs-api
-          image: ${{ steps.build-image.outputs.image }}
-      - name: Deploy Amazon ECS task definition
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        with:
-          task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: dev-service
-          cluster: side-projects-cluster
-          wait-for-service-stability: true
+          args: ecs update-service --cluster $ECS_CLUSTER --service nestapi-service --force-new-deployment
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }
