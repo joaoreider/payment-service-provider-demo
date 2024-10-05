@@ -36,7 +36,7 @@ jobs:
           ECR_REPOSITORY: nestjs-api
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker buildx build --platform linux/amd64 -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG . --load
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
       - name: Deploy to ECS
@@ -47,14 +47,16 @@ jobs:
           CONTAINER_NAME: nestjs-api
           IMAGE_URI: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_DEFAULT_REGION }}.amazonaws.com/nestjs-api:${{ github.sha }}
         run: |
-          docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ECR_IMAGE:latest
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$ECR_IMAGE:latest
+          ecs-cli configure --cluster $ECS_CLUSTER --region $AWS_REGION --default-launch-type FARGATE
+          echo "Updating ECS Service"
+          ecs-cli compose --file docker-compose.yml service up \
+            --cluster-config $ECS_CLUSTER \
+            --ecs-profile ecsProfile \
+            --create-log-groups
 
-      - name: Deploy to ECS
-        uses: imehedi/actions-awscli-v2@latest
+      - name: Update ECS service
+        uses: aws-actions/amazon-ecs-update-task-definition@v1
         with:
-          args: ecs update-service --cluster $ECS_CLUSTER --service nestapi-service --force-new-deployment
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+          task-definition: nestjs-basic-td
+          container-name: ${{ env.CONTAINER_NAME }}
+          image: ${{ env.IMAGE_URI }}
