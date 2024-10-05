@@ -9,6 +9,7 @@ import { IdempotencyService } from './libs/commons/services/idempotency.service'
 import IdempotencyKeyRepository from './libs/commons/repositories/idempotency.repository';
 import PrismaIdempotencyKeyRepository from './libs/commons/repositories/prisma-idempotency-repository';
 import { UuidGeneratorService } from './libs/commons/services/uuid-generator.service';
+import { AppController } from './app.controller';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { UuidGeneratorService } from './libs/commons/services/uuid-generator.ser
       useClass: PrismaIdempotencyKeyRepository,
     },
   ],
+  controllers: [AppController],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
